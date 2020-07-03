@@ -20,7 +20,8 @@
 #define POWER_CROSSFADE 2
 
 #define GRSTATE_DEFAULT 0
-#define TIME_DEFAULT 48000
+#define TIME_DEFAULT 1000
+#define TIEMPO_MIN 5
 #define MAX_PUNTOS_VENTANA 20
 #define N_PUNTOS_DEFAULT 2
 #define MAX_GRANOS 50
@@ -29,12 +30,11 @@
 #define PAN_DEFAULT 0.5
 #define PAN_MAX 1.0
 #define TRANSP_DEFAULT 0.0
-#define TIEMPO_MIN 0
 #define DURGRAMP_DEFAULT 1000
 #define INICIO_DEFAULT 0
 #define MEAN_WEIGHT 0.001
 
-enum INLETS { I_BANG, I_PERIODO, I_INICIO, I_RANGOINICIO, I_DURGRANO, I_LVENTANA, I_PAN, I_TRANSP, NUM_INLETS };
+enum INLETS { I_BANG, I_PERIODO, I_INICIO, I_RANGOINICIO, I_DURGRANO, I_PAN, I_TRANSP, NUM_INLETS };
 enum OUTLETS { O_AUDIOL, O_AUDIOR, NUM_OUTLETS };
 
 static t_class *fl_granular_class;
@@ -43,11 +43,12 @@ static t_class *fl_granular_class;
 typedef struct _fl_grano {
 
 	short busy_state;
-	int ini_samps;
-	int dur_samps;
-	int cont_samps;
+	short buf;
+	long ini_samps;
+	long dur_samps;
+	long cont_samps;
 	float pan;
-	float transp;
+	float ratio;
 
 } t_fl_grano;
 
@@ -70,11 +71,13 @@ typedef struct _fl_granular {
 	short just_turned_on;
 
 	short buffer_iniciado;
-	int granos_activos;
+	short granos_activos_cero;
+	short granos_activos_uno;
+	short new_buf_is;
 
-	int samps_inicio;
-	int samps_rango;
-	int samps_grano;
+	long samps_inicio;
+	long samps_rango;
+	long samps_grano;
 	long bytes_puntos_ventana;
 	float *puntos_ventana;
 	int n_puntos;
@@ -87,16 +90,19 @@ typedef struct _fl_granular {
 	long bytes_ventana;
 	float *ventana_old;
 	float *ventana;
+	short ventana_iniciada;
 
 	short source_busy;
 	long bytes_source;
 	float *source_old;
 	float *source;
 
-	int source_frames;
-	int source_chans;
-	int source_chan_sel;
-	int source_len;
+	float source_sr;
+	long source_frames;
+	short source_chans;
+	short source_chan_sel;
+	long source_len;
+	long source_old_len;
 
 	t_buffer_ref *l_buffer_reference;
 
@@ -117,6 +123,7 @@ void fl_granular_assist(t_fl_granular *x, void *b, long msg, long arg, char *dst
 void fl_granular_free(t_fl_granular *x);
 
 	/* inlets */
+void fl_granular_float(t_fl_granular *x, float f);
 void fl_granular_nuevograno(t_fl_granular *x);
 void fl_granular_state(t_fl_granular *x, long n);
 void fl_granular_periodo(t_fl_granular *x, double farg);
@@ -135,10 +142,11 @@ void fl_granular_fadetype(t_fl_granular *x, t_symbol *msg, short argc, t_atom *a
 	/* aux */
 float parse_curve(float curva);
 void fl_granular_build_ventana(t_fl_granular *x);
+void fl_granular_build_curve(t_fl_granular *x);
 
 	/* buffer */
 void fl_granular_load_buffer(t_fl_granular *x, t_symbol *name, long n);
 
 	/* audio */
 void fl_granular_dsp64(t_fl_granular *x, t_object *dsp64, short *count, double samplerate, long maxvectorsize, long flags);
-t_int *fl_granular_perform64(t_fl_granular *x, t_object *dsp64, double **inputs, long numinputs, double **outputs, long numoutputs, long vectorsize, long flags, void *userparams);
+void fl_granular_perform64(t_fl_granular *x, t_object *dsp64, double **inputs, long numinputs, double **outputs, long numoutputs, long vectorsize, long flags, void *userparams);
