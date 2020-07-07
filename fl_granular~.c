@@ -335,7 +335,12 @@ void fl_granular_fadetime(t_fl_granular *x, t_symbol *msg, short argc, t_atom *a
 	if (argc > 1) { return; }
 	if (atom_gettype(argv) != A_FLOAT) { return; }
 	float crossfade_ms = (float)atom_getfloat(argv);
-	x->crossfade_time = (float)min(MAXIMUM_CROSSFADE, max(MINIMUM_CROSSFADE, crossfade_ms));
+#ifdef MAC_VERSION
+    x->crossfade_time = (float)MIN(MAXIMUM_CROSSFADE, MAX(MINIMUM_CROSSFADE, crossfade_ms));
+#endif
+#ifdef WIN_VERSION
+    x->crossfade_time = (float)min(MAXIMUM_CROSSFADE, max(MINIMUM_CROSSFADE, crossfade_ms));
+#endif
 	x->crossfade_samples = (long)(x->crossfade_time * x->fs / 1000.0);
 	object_attr_touch((t_object *)x, gensym("fadetime"));
 }
@@ -345,7 +350,12 @@ void fl_granular_fadetype(t_fl_granular *x, t_symbol *msg, short argc, t_atom *a
 	if (argc > 1) { return; }
 	if (atom_gettype(argv) != A_LONG) { return; }
 	float crossfade_type = (short)atom_getfloat(argv);
-	x->crossfade_type = (short)min(POWER_CROSSFADE, max(NO_CROSSFADE, crossfade_type));
+#ifdef MAC_VERSION
+    x->crossfade_type = (short)MIN(POWER_CROSSFADE, MAX(NO_CROSSFADE, crossfade_type));
+#endif
+#ifdef WIN_VERSION
+    x->crossfade_type = (short)min(POWER_CROSSFADE, max(NO_CROSSFADE, crossfade_type));
+#endif
 	object_attr_touch((t_object *)x, gensym("fadetype"));
 }
 
@@ -428,8 +438,13 @@ void fl_granular_build_curve(t_fl_granular *x)
 			j = 0;
 			k++;
 		}
+#ifdef MAC_VERSION
+        x_i = (j / (float)MAX(segmento, 1));
+#endif
+#ifdef WIN_VERSION
+        x_i = (j / (float)max(segmento, 1));
+#endif
 
-		x_i = (j / (float)max(segmento, 1));
 		x->ventana[i] = ((float)pow(x_i, curva)) * (y_f - y_i) + y_i;
 	}
 }
@@ -676,7 +691,12 @@ void fl_granular_perform64(t_fl_granular *x, t_object *dsp64, double **inputs, l
 				}
 			}
 			/* mean value */
-			mean = (float)min(1., w * ((double)granos_activos_uno + granos_activos_cero) + (1.0 - (double)w) * mean);
+#ifdef MAC_VERSION
+            mean = (float)MIN(1., w * ((double)granos_activos_uno + granos_activos_cero) + (1.0 - (double)w) * mean);
+#endif
+#ifdef WIN_VERSION
+            mean = (float)min(1., w * ((double)granos_activos_uno + granos_activos_cero) + (1.0 - (double)w) * mean);
+#endif
 		}
 		*outputl++ = panned_out_l;
 		*outputr++ = panned_out_r;
