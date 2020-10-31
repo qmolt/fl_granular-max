@@ -1,10 +1,10 @@
-#include "fl_granular~.h"
+#include "flgranular~.h"
 
 /* The initialization routine *************************************************/
 void ext_main(void *r)
 {
 	/* Initialize the class */
-	fl_granular_class = class_new("fl_granular~", (method)fl_granular_new, (method)fl_granular_free, (long)sizeof(t_fl_granular), 0, A_GIMME, 0);
+	fl_granular_class = class_new("flgranular~", (method)fl_granular_new, (method)fl_granular_free, (long)sizeof(t_fl_granular), 0, A_GIMME, 0);
 
 	/* Bind the object-specific methods */
 	class_addmethod(fl_granular_class, (method)fl_granular_dsp64, "dsp64", A_CANT, 0);
